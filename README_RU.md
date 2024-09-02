@@ -2,7 +2,7 @@
 
   <img src="https://github.com/Gourieff/Assets/raw/main/sd-webui-reactor/ReActor_logo_NEW_RU.png?raw=true" alt="logo" width="180px"/>
 
-  ![Version](https://img.shields.io/badge/версия_нода-0.5.0_beta2-green?style=for-the-badge&labelColor=darkgreen)
+  ![Version](https://img.shields.io/badge/версия_нода-0.5.1_alpha7-lightgreen?style=for-the-badge&labelColor=darkgreen)
   
   <sup>
   <font color=brightred>
@@ -55,6 +55,28 @@
 
 ## Что нового в последнем обновлении
 
+### 0.5.1 <sub><sup>ALPHA1</sup></sub>
+
+- Поддержка моделей восстановления лиц GPEN 1024/2048 (доступны в датасете на HF https://huggingface.co/datasets/Gourieff/ReActor/tree/main/models/facerestore_models)
+- Нод ReActorFaceBoost - попытка улучшить качество заменённых лиц. Идея состоит в том, чтобы восстановить и увеличить заменённое лицо (в соответствии с параметром `face_size` модели реставрации) ДО того, как лицо будет вставлено в целевое изображения (через алгоритмы инсваппера), больше информации [здесь (PR#321)](https://github.com/Gourieff/comfyui-reactor-node/pull/321)
+
+<img src="https://github.com/Gourieff/Assets/blob/main/comfyui-reactor-node/0.5.1-whatsnew-01.jpg?raw=true" alt="0.5.1-whatsnew-01" width="100%"/>
+
+[Полноразмерное демо-превью](https://github.com/Gourieff/Assets/blob/main/comfyui-reactor-node/0.5.1-whatsnew-02.png)
+
+- Некоторые исправления и улучшения
+
+<details>
+	<summary><a>Предыдущие версии</a></summary>
+
+### [0.5.0 <sub><sup>BETA4</sup></sub>](https://github.com/Gourieff/comfyui-reactor-node/releases/tag/v0.5.0)
+
+- Поддержка библиотеки Spandrel при работе с GFPGAN
+
+### 0.5.0 <sub><sup>BETA3</sup></sub>
+
+- Исправления: "RAM issue", "No detection" для MaskingHelper
+
 ### 0.5.0 <sub><sup>BETA2</sup></sub>
 
 - Появилась возможность строить смешанные модели лиц из пачки уже имеющихся моделей - добавьте для этого нод "Make Face Model Batch" в свой воркфлоу и загрузите несколько моделей через ноды "Load Face Model"
@@ -95,10 +117,7 @@ Basic workflow [💾](https://github.com/Gourieff/Assets/blob/main/comfyui-react
 
 - Небольшое улучшение скорости анализа целевых изображений (input)
 
-<details>
-	<summary><a>Предыдущие версии</a></summary>
-
-### 0.4.2
+### [0.4.2](https://github.com/Gourieff/comfyui-reactor-node/releases/tag/v0.4.2)
 
 - Добавлена поддержка GPEN-BFR-512 и RestoreFormer_Plus_Plus моделей восстановления лиц
 
@@ -121,7 +140,7 @@ Basic workflow [💾](https://github.com/Gourieff/Assets/blob/main/comfyui-react
 
 Базовый воркфлоу [💾](https://github.com/Gourieff/Assets/blob/main/comfyui-reactor-node/workflows/ReActor--Build-Blended-Face-Model--v1.json)
 
-### 0.4.1
+### [0.4.1](https://github.com/Gourieff/comfyui-reactor-node/releases/tag/v0.4.1)
 
 - Поддержка CUDA 12 - не забудьте запустить (Windows) `install.bat` или (Linux/MacOS) `install.py` для используемого Python окружения или попробуйте установить ORT-GPU для CU12 вручную (https://onnxruntime.ai/docs/install/#install-onnx-runtime-gpu-cuda-12x)
 - Исправление Issue https://github.com/Gourieff/comfyui-reactor-node/issues/173
@@ -134,7 +153,7 @@ Basic workflow [💾](https://github.com/Gourieff/Assets/blob/main/comfyui-react
 
 <img src="https://github.com/Gourieff/Assets/blob/main/comfyui-reactor-node/0.4.1-whatsnew-01.jpg?raw=true" alt="0.4.1-whatsnew-01" width="100%"/>
 
-### 0.4.0
+### [0.4.0](https://github.com/Gourieff/comfyui-reactor-node/releases/tag/v0.4.0)
 
 - Вход "input_image" теперь идёт первым, это даёт возможность корректного байпаса, а также это правильно с точки зрения расположения входов (главный вход - первый);
 - Теперь можно сохранять модели лиц в качестве файлов "safetensors" (`ComfyUI\models\reactor\faces`) и загружать их в ReActor, реализуя разные сценарии использования, а также  храня супер легкие модели лиц, которые вы чаще всего используете:
@@ -212,6 +231,7 @@ https://huggingface.co/datasets/Gourieff/ReActor/tree/main/models/facerestore_mo
    - ReActorFaceSwap (Основной нод)
    - ReActorFaceSwapOpt (Основной нод с доп. входом Options)
    - ReActorOptions (Опции для ReActorFaceSwapOpt)
+   - ReActorFaceBoost (Нод Face Booster)
    - ReActorMaskHelper (Masking Helper)
 - ••• Operations with Face Models •••
   - ReActorSaveFaceModel (Save Face Model)

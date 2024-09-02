@@ -1,7 +1,5 @@
-import copy
 import os
 import shutil
-from dataclasses import dataclass
 from typing import List, Union
 
 import cv2
@@ -15,11 +13,16 @@ try:
 except:
     cuda = None
 
-from scripts.reactor_logger import logger
-from reactor_utils import move_path, get_image_md5hash
 import folder_paths
 import comfy.model_management as model_management
 from modules.shared import state
+
+from scripts.reactor_logger import logger
+from reactor_utils import (
+    move_path,
+    get_image_md5hash,
+)
+from scripts.r_faceboost import swapper, restorer
 
 import warnings
 
@@ -65,6 +68,7 @@ TARGET_FACES = None
 TARGET_IMAGE_HASH = None
 TARGET_FACES_LIST = []
 TARGET_IMAGE_LIST_HASH = []
+
 
 def get_current_faces_model():
     global SOURCE_FACES
@@ -145,7 +149,14 @@ def half_det_size(det_size):
 
 def analyze_faces(img_data: np.ndarray, det_size=(640, 640)):
     face_analyser = getAnalysisModel(det_size)
-    return face_analyser.get(img_data)
+    faces = face_analyser.get(img_data)
+
+    # Try halving det_size if no faces are found
+    if len(faces) == 0 and det_size[0] > 320 and det_size[1] > 320:
+        det_size_half = half_det_size(det_size)
+        return analyze_faces(img_data, det_size_half)
+
+    return faces
 
 def get_face_single(img_data: np.ndarray, face, face_index=0, det_size=(640, 640), gender_source=0, gender_target=0, order="large-small"):
 
@@ -187,6 +198,11 @@ def swap_face(
     gender_target: int = 0,
     face_model: Union[Face, None] = None,
     faces_order: List = ["large-small", "large-small"],
+    face_boost_enabled: bool = False,
+    face_restore_model = None,
+    face_restore_visibility: int = 1,
+    codeformer_weight: float = 0.5,
+    interpolation: str = "Bicubic",
 ):
     global SOURCE_FACES, SOURCE_IMAGE_HASH, TARGET_FACES, TARGET_IMAGE_HASH
     result_image = target_img
@@ -302,7 +318,15 @@ def swap_face(
                         target_face, wrong_gender = get_face_single(target_img, target_faces, face_index=face_num, gender_target=gender_target, order=faces_order[0])
                         if target_face is not None and wrong_gender == 0:
                             logger.status(f"Swapping...")
-                            result = face_swapper.get(result, target_face, source_face)
+                            if face_boost_enabled:
+                                logger.status(f"Face Boost is enabled")
+                                bgr_fake, M = face_swapper.get(result, target_face, source_face, paste_back=False)
+                                bgr_fake, scale = restorer.get_restored_face(bgr_fake, face_restore_model, face_restore_visibility, codeformer_weight, interpolation)
+                                M *= scale
+                                result = swapper.in_swap(target_img, bgr_fake, M)
+                            else:
+                                # logger.status(f"Swapping as-is")
+                                result = face_swapper.get(result, target_face, source_face)
                         elif wrong_gender == 1:
                             wrong_gender = 0
                             # Keep searching for other faces if wrong gender is detected, enhancement
@@ -342,6 +366,11 @@ def swap_face_many(
     gender_target: int = 0,
     face_model: Union[Face, None] = None,
     faces_order: List = ["large-small", "large-small"],
+    face_boost_enabled: bool = False,
+    face_restore_model = None,
+    face_restore_visibility: int = 1,
+    codeformer_weight: float = 0.5,
+    interpolation: str = "Bicubic",
 ):
     global SOURCE_FACES, SOURCE_IMAGE_HASH, TARGET_FACES, TARGET_IMAGE_HASH, TARGET_FACES_LIST, TARGET_IMAGE_LIST_HASH
     result_images = target_imgs
@@ -459,8 +488,7 @@ def swap_face_many(
             if len(source_faces_index) != 0 and len(source_faces_index) != 1 and len(source_faces_index) != len(faces_index):
                 logger.status(f'Source Faces must have no entries (default=0), one entry, or same number of entries as target faces.')
             elif source_face is not None:
-                results = []
-                # results = target_imgs
+                results = target_imgs
                 model_path = model_path = os.path.join(insightface_path, model)
                 face_swapper = getFaceSwapModel(model_path)
 
@@ -477,12 +505,22 @@ def swap_face_many(
                     source_face_idx += 1
 
                     if source_face is not None and src_wrong_gender == 0:
-                        for i, (target_img, target_face) in enumerate(zip(target_imgs, target_faces)):
+                        # Reading results to make current face swap on a previous face result
+                        for i, (target_img, target_face) in enumerate(zip(results, target_faces)):
                             target_face_single, wrong_gender = get_face_single(target_img, target_face, face_index=face_num, gender_target=gender_target, order=faces_order[0])
                             if target_face_single is not None and wrong_gender == 0:
+                                result = target_img
                                 logger.status(f"Swapping {i}...")
-                                result = face_swapper.get(target_img, target_face_single, source_face)
-                                results.append(result)
+                                if face_boost_enabled:
+                                    logger.status(f"Face Boost is enabled")
+                                    bgr_fake, M = face_swapper.get(target_img, target_face_single, source_face, paste_back=False)
+                                    bgr_fake, scale = restorer.get_restored_face(bgr_fake, face_restore_model, face_restore_visibility, codeformer_weight, interpolation)
+                                    M *= scale
+                                    result = swapper.in_swap(target_img, bgr_fake, M)
+                                else:
+                                    # logger.status(f"Swapping as-is")
+                                    result = face_swapper.get(target_img, target_face_single, source_face)
+                                results[i] = result
                             elif wrong_gender == 1:
                                 wrong_gender = 0
                                 logger.status("Wrong target gender detected")

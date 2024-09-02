@@ -2,7 +2,7 @@
 
   <img src="https://github.com/Gourieff/Assets/raw/main/sd-webui-reactor/ReActor_logo_NEW_EN.png?raw=true" alt="logo" width="180px"/>
 
-  ![Version](https://img.shields.io/badge/node_version-0.5.0_beta2-green?style=for-the-badge&labelColor=darkgreen)
+  ![Version](https://img.shields.io/badge/node_version-0.5.1_alpha7-lightgreen?style=for-the-badge&labelColor=darkgreen)
 
   <sup>
   <font color=brightred>
@@ -55,6 +55,28 @@
 
 ## What's new in the latest update
 
+### 0.5.1 <sub><sup>ALPHA1</sup></sub>
+
+- Support of GPEN 1024/2048 restoration models (available in the HF dataset https://huggingface.co/datasets/Gourieff/ReActor/tree/main/models/facerestore_models)
+- ReActorFaceBoost Node - an attempt to improve the quality of swapped faces. The idea is to restore and scale the swapped face (according to the `face_size` parameter of the restoration model) BEFORE pasting it to the target image (via inswapper algorithms), more information is [here (PR#321)](https://github.com/Gourieff/comfyui-reactor-node/pull/321)
+
+<img src="https://github.com/Gourieff/Assets/blob/main/comfyui-reactor-node/0.5.1-whatsnew-01.jpg?raw=true" alt="0.5.1-whatsnew-01" width="100%"/>
+
+[Full size demo preview](https://github.com/Gourieff/Assets/blob/main/comfyui-reactor-node/0.5.1-whatsnew-02.png)
+
+- Some fixes and improvements
+
+<details>
+	<summary><a>Previous versions</a></summary>
+
+### [0.5.0 <sub><sup>BETA4</sup></sub>](https://github.com/Gourieff/comfyui-reactor-node/releases/tag/v0.5.0)
+
+- Spandrel lib support for GFPGAN
+
+### 0.5.0 <sub><sup>BETA3</sup></sub>
+
+- Fixes: "RAM issue", "No detection" for MaskingHelper
+
 ### 0.5.0 <sub><sup>BETA2</sup></sub>
 
 - You can now build a blended face model from a batch of face models you already have, just add the "Make Face Model Batch" node to your workflow and connect several models via "Load Face Model"
@@ -95,10 +117,7 @@ Use this Node to gain the best results of the face swapping process:
 
 - Little speed boost when analyzing target images (unfortunately it is still quite slow in compare to swapping and restoring...)
 
-<details>
-	<summary><a>Previous versions</a></summary>
-
-### 0.4.2
+### [0.4.2](https://github.com/Gourieff/comfyui-reactor-node/releases/tag/v0.4.2)
 
 - GPEN-BFR-512 and RestoreFormer_Plus_Plus face restoration models support
 
@@ -121,7 +140,7 @@ Result example (the new face was created from 4 faces of different actresses):
 
 Basic workflow [💾](https://github.com/Gourieff/Assets/blob/main/comfyui-reactor-node/workflows/ReActor--Build-Blended-Face-Model--v1.json)
 
-### 0.4.1
+### [0.4.1](https://github.com/Gourieff/comfyui-reactor-node/releases/tag/v0.4.1)
 
 - CUDA 12 Support - don't forget to run (Windows) `install.bat` or (Linux/MacOS) `install.py` for ComfyUI's Python enclosure or try to install ORT-GPU for CU12 manually (https://onnxruntime.ai/docs/install/#install-onnx-runtime-gpu-cuda-12x)
 - Issue https://github.com/Gourieff/comfyui-reactor-node/issues/173 fix
@@ -134,7 +153,7 @@ Basic workflow [💾](https://github.com/Gourieff/Assets/blob/main/comfyui-react
 
 <img src="https://github.com/Gourieff/Assets/blob/main/comfyui-reactor-node/0.4.1-whatsnew-01.jpg?raw=true" alt="0.4.1-whatsnew-01" width="100%"/>
 
-### 0.4.0
+### [0.4.0](https://github.com/Gourieff/comfyui-reactor-node/releases/tag/v0.4.0)
 
 - Input "input_image" goes first now, it gives a correct bypass and also it is right to have the main input first;
 - You can now save face models as "safetensors" files (`ComfyUI\models\reactor\faces`) and load them into ReActor implementing different scenarios and keeping super lightweight face models of the faces you use:
@@ -208,6 +227,7 @@ List of Nodes:
    - ReActorFaceSwap (Main Node)
    - ReActorFaceSwapOpt (Main Node with the additional Options input)
    - ReActorOptions (Options for ReActorFaceSwapOpt)
+   - ReActorFaceBoost (Face Booster Node)
    - ReActorMaskHelper (Masking Helper)
 - ••• Operations with Face Models •••
   - ReActorSaveFaceModel (Save Face Model)
